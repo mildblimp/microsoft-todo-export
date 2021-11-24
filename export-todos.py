@@ -62,7 +62,6 @@ if __name__ == "__main__":
     pst = pypff.file()
     pst.open("b2bbc2ea27cf40f5926338de537e4789.pst")
     root = pst.get_root_folder()
-    # Recurse into the "Tasks" folder
     tasks_folder = find_tasks_folder(root)
     tasks = recurse(tasks_folder)
     pst.close()
