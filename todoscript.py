@@ -1,11 +1,7 @@
 import json
 import pypff
-
-pst = pypff.file()
-pst.open("b2bbc2ea27cf40f5926338de537e4789.pst")
-
-
-root = pst.get_root_folder()
+from bs4 import BeautifulSoup
+import pandas as pd
 
 
 def find_tasks_folder(root):
@@ -24,38 +20,52 @@ def get_subtasks(item):
             output = en.data.decode("utf-16")
             if '{"Values":[' in output:
                 output = json.loads(output)
-                subtasks = [task["Subject"] for task in list(output.values())[0]]
+                subtasks = [
+                    {
+                        "list": None,
+                        "task": task["Subject"],
+                        "description": None,
+                        "creation_time": task["CreatedDateTime"],
+                    }
+                    for task in list(output.values())[0]
+                ]
                 return subtasks
         except (UnicodeDecodeError, AttributeError):
             pass
     return []
 
 
-def print_cutoff(idx, level, cutoff=5):
-    if idx > cutoff:
-        print("  " * level, "...")
-        return True
-    return False
-
-
 def recurse(folder, level=0):
+    tasks = []
     for i, item in enumerate(folder.sub_items):
         if isinstance(item, pypff.folder):
-            print("  " * level, item.name[:30])
-            recurse(item, level=level + 1)
+            tasks.extend(recurse(item, level=level + 1))
         if isinstance(item, pypff.message):
-            # if item.subject in ["kvc opmerkingen", "Ikea"]:
-            print("  " * level, item.subject)
+            try:
+                soup = BeautifulSoup(item.html_body, features="lxml")
+                body = soup.body.div.string.rstrip()
+            except (OSError, AttributeError, TypeError):
+                body = None
+            item_info = {
+                "list": folder.name,
+                "task": item.subject,
+                "description": body,
+                "creation_time": item.creation_time,
+            }
+            tasks.append(item_info)
             subtasks = get_subtasks(item)
-            for j, task in enumerate(subtasks):
-                print("  " * (level + 1), task)
-                if print_cutoff(j, level + 1, cutoff=3):
-                    break
-            if print_cutoff(i, level):
-                break
+            tasks.extend(subtasks)
+    return tasks
 
 
-# Recurse into the "Tasks" folder
-tasks_folder = find_tasks_folder(root)
-recurse(tasks_folder)
-pst.close()
+if __name__ == "__main__":
+    pst = pypff.file()
+    pst.open("b2bbc2ea27cf40f5926338de537e4789.pst")
+    root = pst.get_root_folder()
+    # Recurse into the "Tasks" folder
+    tasks_folder = find_tasks_folder(root)
+    tasks = recurse(tasks_folder)
+    pst.close()
+
+    tasks = pd.DataFrame(tasks)
+    print(tasks)
