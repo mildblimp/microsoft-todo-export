@@ -1,8 +1,8 @@
 # Microsoft To Do export
 
-This script extracts data from the proprietary `pst` format that Microsoft
-exports your data to a `csv` file. It can be used to create an offline backup
-or to import into other task managers.
+Export data from the proprietary `pst` format that Microsoft uses to a `csv`
+file. It can be used to create an offline backup or to import into other task
+managers.
 
 ## Features
 
@@ -27,7 +27,9 @@ to import my tasks elsewhere.
 
 ## Usage
 
-`console ./export-todos.py input_file.pst -o output_file.csv `
+```shell
+./export-todos.py input_file.pst -o output_file.csv
+```
 
 ## Contributing
 
