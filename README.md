@@ -33,3 +33,7 @@ to import my tasks elsewhere.
 
 Please feel free to submit an issue or pull request, but note that this project
 is not actively maintained.
+
+## License
+
+MIT
