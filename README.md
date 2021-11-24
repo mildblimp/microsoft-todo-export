@@ -27,7 +27,7 @@ to import my tasks elsewhere.
 
 ## Usage
 
-`console ./export-todos.py -i input_file.pst -o output_file.csv `
+`console ./export-todos.py input_file.pst -o output_file.csv `
 
 ## Contributing
 

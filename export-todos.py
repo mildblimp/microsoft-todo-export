@@ -1,7 +1,9 @@
+import argparse
 import json
+
+import pandas as pd
 import pypff
 from bs4 import BeautifulSoup
-import pandas as pd
 
 
 def find_tasks_folder(root):
@@ -59,12 +61,27 @@ def recurse(folder, level=0):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Export tasks from a Microsoft To Do pst file to csv."
+    )
+    parser.add_argument("infile", type=argparse.FileType("r"), help="input file (.pst)")
+    parser.add_argument(
+        "-o",
+        "--outfile",
+        nargs="?",
+        type=argparse.FileType("w"),
+        help="output file (.csv)",
+    )
+    args = parser.parse_args()
     pst = pypff.file()
-    pst.open("b2bbc2ea27cf40f5926338de537e4789.pst")
+    pst.open(args.infile.name)
     root = pst.get_root_folder()
     tasks_folder = find_tasks_folder(root)
     tasks = recurse(tasks_folder)
     pst.close()
 
     tasks = pd.DataFrame(tasks)
-    print(tasks)
+    if args.output_file is None:
+        print(tasks)
+    else:
+        tasks.to_csv(args.output_file, index=False)
